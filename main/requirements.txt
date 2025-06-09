@@ -1,0 +1,6 @@
+python-dotenv
+requests
+pandas
+nltk
+scikit-learn
+sumy
