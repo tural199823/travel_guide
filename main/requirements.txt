@@ -1,6 +1,14 @@
-python-dotenv
+selenium
+webdriver-manager
+beautifulsoup4
 requests
 pandas
 nltk
 scikit-learn
 sumy
+python-dotenv
+pydantic
+typing-extensions
+langchain
+langgraph
+IPython
