@@ -12,3 +12,5 @@ typing-extensions
 langchain
 langgraph
 IPython
+fastapi
+uvicorn
