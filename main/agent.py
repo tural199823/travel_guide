@@ -18,11 +18,13 @@ from langchain.tools import Tool
 from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables import Runnable
+import streamlit as st
+from tavily import TavilyClient
 
-dotenv_path = Path(__file__).resolve().parent / ".env"
+dotenv_path = Path("main/.env")
 load_dotenv(dotenv_path=dotenv_path)
 
-llm = init_chat_model("gpt-4.1-mini", temperature=0.1) 
+llm = init_chat_model("gpt-4.1", temperature=0.1) 
 
 @tool
 def nearby_place_search(
@@ -192,9 +194,32 @@ def get_available_event_categories(city: str) -> Union[Dict[str, Union[str, Dict
     
     except Exception as e:
         return {"error": str(e)}
-    
 
-tools = [nearby_place_search, get_weather,get_detailed_events_tool, get_available_event_categories]
+
+@tool
+def web_search(query: str) -> str:  # Changed return type to str
+    """
+    Perform a web search using the Tavily API and return search results.
+    Do this when the user asks for general information or news articles, and you dont have the information because the LLM is not trained on the latest data.
+    This tool is useful for finding up-to-date information on various topics.
+    
+    Args:
+        query (str): The search query string. You can use this to search for news, articles, or general information, such as "Latest news in Iran" etc.
+    """
+    try:
+
+        client = TavilyClient(os.getenv("TAVILY_API_KEY"))
+        response = client.search(query=query, max_results=10)
+        results = [result.get('content', '') for result in response.get('results', [])]
+        return "\n\n".join(results[:3])  
+        
+        
+    except Exception as e:
+        return f"Web search failed: {str(e)}"
+
+
+
+tools = [nearby_place_search, get_weather,get_detailed_events_tool, get_available_event_categories,web_search]
 tools_by_name = {tool.name: tool for tool in tools}
 llm_with_tools = llm.bind_tools(tools)
 
@@ -208,6 +233,7 @@ TOOL SELECTION GUIDELINES:
 - Use get_weather when users ask about weather conditions, forecasts, or weather-related travel advice
 - Use get_detailed_events_tool when users ask about specific events in a city (requires both city and category)
 - Use get_available_event_categories when users want to know what types of events are available in a city
+- Use web_search when the user asks for general information or news articles, and you dont have the information because the LLM is not trained on the latest data.
 
 TOOL-SPECIFIC INSTRUCTIONS:
 
@@ -313,28 +339,19 @@ memory = MemorySaver()
 # Compile the agent
 agent = agent_builder.compile(checkpointer=memory)
 
+# Interactive CLI for the travel assistant agent
 
 config = {"configurable": {"thread_id": "1"}}
-messages = [HumanMessage(content="This is fine, what are other available events in Berlin?")]
-messages = agent.invoke({"messages": messages},config=config)
-for m in messages["messages"]:
-    m.pretty_print()
 
-# config = {"configurable": {"thread_id": "1"}}
-# messages = []  # conversation history
-
-# while True:
-#     user_input = input("You: ")
-#     if user_input.lower() in ["exit", "quit"]:
-#         break
+while True:
+    user_input = input("You: ")
+    if user_input.lower() in ["exit", "quit"]:
+        break
+   
+    # Just send the current message - let the agent handle history
+    response = agent.invoke({"messages": [HumanMessage(content=user_input)]}, config=config)
     
-#     # Add user message to history
-#     messages.append(HumanMessage(content=user_input))
-
-#     # Get agent response
-#     response = agent.invoke({"messages": messages}, config=config)
-
-#     # Add response to history
-#     messages.append(response)
-
-#     print("Bot:", response.content)
+    # Print the last message from the agent
+    if "messages" in response:
+        last_message = response["messages"][-1]
+        print("Bot:", last_message.content)
