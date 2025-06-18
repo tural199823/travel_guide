@@ -21,7 +21,7 @@ from langchain_core.runnables import Runnable
 import streamlit as st
 from tavily import TavilyClient
 
-dotenv_path = Path("main/.env")
+dotenv_path = Path(".env")
 load_dotenv(dotenv_path=dotenv_path)
 
 llm = init_chat_model("gpt-4.1", temperature=0.1) 
