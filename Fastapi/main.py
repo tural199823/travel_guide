@@ -2,7 +2,7 @@ from fastapi import FastAPI,WebSocket
 from fastapi.responses import HTMLResponse
 from agent.agent import agent
 from pydantic import BaseModel
-from template import html
+#from template import html
 from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
 app = FastAPI()
 
@@ -12,7 +12,7 @@ class ChatInput(BaseModel):
 
 @app.get("/")
 async def get():
-    return HTMLResponse(html)
+    return {"message": "API is running"}
 
 
 # New method

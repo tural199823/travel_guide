@@ -14,3 +14,6 @@ langgraph
 IPython
 fastapi
 uvicorn
+streamlit
+tavily-python
+langchain-openai
