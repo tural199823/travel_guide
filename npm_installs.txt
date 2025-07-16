@@ -1,0 +1,6 @@
+npm install bootstrap    
+npm install react-markdown 
+npm install marked dompurify 
+npm install react-loading      
+npm install --save react-chat-elements@latest --legacy-peer-deps
+npm install react-chat-elements --legacy-peer-deps   
